@@ -6,7 +6,34 @@
 
 
 def main():
-    pass
+    from argparse import (
+        ArgumentParser,
+        Namespace,
+    )
+    from pathlib import Path
+    from sys import argv
+
+    parser = ArgumentParser(
+        prog=argv[0],
+        description="video compressor",
+    )
+
+    parser.add_argument(
+        "-i",
+        "--input",
+        type=Path,
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        type=Path,
+    )
+
+    args: Namespace
+    ffmpeg_args: list[str]
+    args, ffmpeg_args = parser.parse_known_args()
+
+    ffmpeg_args: dict[str, str] = dict(arg.split("=") for arg in ffmpeg_args)
 
 
 if __name__ == "__main__":
