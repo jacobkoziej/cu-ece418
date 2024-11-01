@@ -35,6 +35,7 @@
             ]
             ++ (with pkgs; [
               black
+              ffmpeg
               ruff
               treefmt2
             ]);
