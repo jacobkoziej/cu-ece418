@@ -23,6 +23,7 @@
           python-pkgs: with python-pkgs; [
             ffmpeg-python
             ipython
+            numpy
           ]
         );
 
