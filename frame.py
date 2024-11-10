@@ -9,6 +9,12 @@ from dataclasses import dataclass
 
 
 @dataclass
+class BFrame:
+    motion_vectors: np.ndarray
+    residuals: int
+
+
+@dataclass
 class IFrame:
     frame: np.ndarray
 
