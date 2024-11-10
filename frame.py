@@ -26,6 +26,11 @@ class PFrame:
     residuals: int
 
 
+@dataclass
+class StreamConfig:
+    block_size: int = 16
+
+
 def pad_width(
     height: int,
     width: int,

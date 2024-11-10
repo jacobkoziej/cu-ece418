@@ -6,13 +6,16 @@
 from dataclasses import dataclass
 
 from fetch import VideoMetadata
-from frame import pad_width
+from frame import (
+    StreamConfig,
+    pad_width,
+)
 
 
 @dataclass
 class EncoderConfig:
+    stream_config: StreamConfig
     video_metadata: VideoMetadata
-    block_size: int = 16
 
 
 class Encoder:
@@ -21,7 +24,7 @@ class Encoder:
 
         height: int = config.video_metadata.height
         width: int = config.video_metadata.width
-        block_size: int = config.block_size
+        block_size: int = config.stream_config.block_size
 
         self._pad_frame: Callable[[np.ndarray], np.ndarray] = self.pad_frame(
             height, width, block_size
