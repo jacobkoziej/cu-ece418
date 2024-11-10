@@ -14,9 +14,14 @@ from frame import (
     pad_width,
 )
 
+@dataclass
+class EncoderFrameRateConfig:
+    i: int = 32
+    p: int = 8
 
 @dataclass
 class EncoderConfig:
+    frame_rate: EncoderFrameRateConfig
     metadata: VideoMetadata
     stream: StreamConfig
 
