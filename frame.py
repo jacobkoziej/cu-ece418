@@ -11,7 +11,7 @@ from dataclasses import dataclass
 @dataclass
 class BFrame:
     motion_vectors: np.ndarray
-    residuals: int
+    residuals: np.ndarray
 
 
 @dataclass
@@ -23,7 +23,7 @@ class IFrame:
 class PFrame:
     motion_vectors: np.ndarray
     reference_frame: int
-    residuals: int
+    residuals: np.ndarray
 
 
 @dataclass
