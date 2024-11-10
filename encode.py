@@ -5,9 +5,10 @@
 
 from dataclasses import dataclass
 
+from fetch import VideoMetadata
+
 
 @dataclass
 class EncoderConfig:
+    video_metadata: VideoMetadata
     block_size: int = 16
-    height: int
-    width: int
