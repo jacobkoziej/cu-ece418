@@ -36,8 +36,11 @@ def pad_width(
     width: int,
     block_size: int,
 ) -> tuple[tuple[int, int], tuple[int, int]]:
-    target_height: int = height + (height % block_size)
-    target_width: int = width + (width % block_size)
+    def pad(x: int, size: int) -> int:
+        return x + ((size - (x % size)) % size)
+
+    target_height: int = pad(height, block_size)
+    target_width: int = pad(width, block_size)
 
     pad_top: int = (target_height - height) // 2
     pad_bottom: int = target_height - height - pad_top
