@@ -50,3 +50,25 @@ def pad_width(
     )
 
     return pad_width
+
+
+def unpad_slice(
+    pad_width: tuple[tuple[int, int], tuple[int, int]]
+) -> tuple[slice, slice]:
+    height_pad, width_pad = pad_width
+
+    def zero_to_none(x: int) -> int | None:
+        return x if x else None
+
+    height_slice = slice(
+        zero_to_none(height_pad[0]),
+        zero_to_none(-1 * height_pad[1]),
+    )
+    width_slice = slice(
+        zero_to_none(width_pad[0]),
+        zero_to_none(-1 * width_pad[1]),
+    )
+
+    unpad_slice = (height_slice, width_slice)
+
+    return unpad_slice
