@@ -17,17 +17,17 @@ from frame import (
 
 @dataclass
 class EncoderConfig:
-    stream_config: StreamConfig
-    video_metadata: VideoMetadata
+    metadata: VideoMetadata
+    stream: StreamConfig
 
 
 class Encoder:
     def __init__(self, config: EncoderConfig):
         self.config: EncoderConfig = config
 
-        height: int = config.video_metadata.height
-        width: int = config.video_metadata.width
-        block_size: int = config.stream_config.block_size
+        height: int = config.metadata.height
+        width: int = config.metadata.width
+        block_size: int = config.stream.block_size
 
         self._pad_frame: Callable[[np.ndarray], np.ndarray] = self.pad_frame(
             height, width, block_size

@@ -18,17 +18,17 @@ from frame import (
 
 @dataclass
 class DecoderConfig:
-    stream_config: StreamConfig
-    video_metadata: VideoMetadata
+    metadata: VideoMetadata
+    stream: StreamConfig
 
 
 class Decoder:
     def __init__(self, config: DecoderConfig):
         self.config: DecoderConfig = config
 
-        height: int = config.video_metadata.height
-        width: int = config.video_metadata.width
-        block_size: int = config.stream_config.block_size
+        height: int = config.metadata.height
+        width: int = config.metadata.width
+        block_size: int = config.stream.block_size
 
         self._unpad_frame: Callable[[np.ndarray], np.ndarray] = self.unpad_frame(
             pad_width(height, width, block_size)
