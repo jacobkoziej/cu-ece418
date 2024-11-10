@@ -12,3 +12,12 @@ from fetch import VideoMetadata
 class EncoderConfig:
     video_metadata: VideoMetadata
     block_size: int = 16
+
+
+class Encoder:
+    def __init__(self, config: EncoderConfig):
+        self.config: EncoderConfig = config
+
+        height: int = config.video_metadata.height
+        width: int = config.video_metadata.width
+        block_size: int = config.block_size
