@@ -10,3 +10,8 @@ from dataclasses import dataclass
 class DecoderConfig:
     stream_config: StreamConfig
     video_metadata: VideoMetadata
+
+
+class Decoder:
+    def __init__(self, config: DecoderConfig):
+        self.config: DecoderConfig = config
