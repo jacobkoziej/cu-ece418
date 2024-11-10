@@ -11,3 +11,10 @@ from dataclasses import dataclass
 @dataclass
 class IFrame:
     frame: np.ndarray
+
+
+@dataclass
+class PFrame:
+    motion_vectors: np.ndarray
+    reference_frame: int
+    residuals: int
