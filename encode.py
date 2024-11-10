@@ -3,6 +3,9 @@
 # encode.py -- encode video
 # Copyright (C) 2024  Jacob Koziej <jacobkoziej@gmail.com>
 
+import numpy as np
+
+from collections.abc import Callable
 from dataclasses import dataclass
 
 from fetch import VideoMetadata
