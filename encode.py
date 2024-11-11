@@ -123,7 +123,7 @@ class Encoder:
             residual = residual[forward_prediction]
 
             best_match: np.ndarray = np.array(
-                [forward_prediction, pel2block(x - j), pel2block(y - i)]
+                [forward_prediction, pel2block(y - i), pel2block(x - j)]
             )
 
             return (sad, best_match, residual)
