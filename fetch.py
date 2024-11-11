@@ -33,7 +33,7 @@ def frames_external_format(
         ffmpeg.input(path).output("pipe:", format="rawvideo", pix_fmt="gray").compile()
     )
 
-    process: Popen = Popen(args, stdout=PIPE, stderr=DEVNULL)
+    process: Popen = Popen(args, stdin=DEVNULL, stdout=PIPE, stderr=DEVNULL)
 
     frame_shape: tuple[int, int] = (metadata.height, metadata.width)
     frame_bytes: int = metadata.height * metadata.width
