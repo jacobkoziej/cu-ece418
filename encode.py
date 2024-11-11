@@ -44,75 +44,115 @@ class Encoder:
     def block_match(
         self, search: np.ndarray, target: np.ndarray
     ) -> tuple[np.ndarray, np.ndarray]:
-        assert target.ndim == 2
-        assert 2 <= search.ndim <= 3
+        assert search.ndim == 3
+        assert target.ndim == 3
 
-        assert target.shape == search.shape[-2:]
+        assert target.shape[-2:] == search.shape[-2:]
         assert target.dtype == search.dtype
 
-        height, width = target.shape
-        block_size = self.config.stream.block_size
-        search_limit = self.config.search_limit
+        height: int
+        width: int
+        _, height, width = target.shape
+
+        block_size: int = self.config.stream.block_size
 
         assert not height % block_size
         assert not width % block_size
 
-        blocked_height = height // block_size
-        blocked_width = width // block_size
+        blocked_height: int = height // block_size
+        blocked_width: int = width // block_size
 
-        search_range = block_size * search_limit
+        search_limit: int = self.config.search_limit
+        search_range: int = block_size * search_limit
 
-        motion_vectors = np.zeros(
-            (blocked_height, blocked_width, search.ndim), dtype=np.int32
+        motion_vectors: np.ndarray = np.zeros(
+            shape=(blocked_height, blocked_width, 3),
+            dtype=np.int32,
         )
-        residuals = np.zeros(
-            (blocked_height, blocked_width, block_size, block_size), dtype=target.dtype
+        residuals: np.ndarray = np.zeros(
+            shape=(blocked_height, blocked_width) + (block_size,) * 2,
+            dtype=target.dtype,
         )
 
-        if search.ndim == 3:
-            target = np.expand_dims(target, axis=0)
+        def range_process(limit: int) -> range:
+            return range(0, limit - block_size + 1, block_size)
 
-        for i in range(0, height - block_size + 1, block_size):
-            for j in range(0, width - block_size + 1, block_size):
-                block = target[..., i : i + block_size, j : j + block_size]
+        def range_search(position: int, limit: int) -> range:
+            return range(
+                max(0, position - search_range),
+                min(limit - block_size + 1, position + search_range + 1),
+                block_size,
+            )
 
-                min_sad = float("inf")
-                best_match = (0, 0)
+        def select_block(x: int, y: int) -> tuple[slice, slice]:
+            block = (
+                slice(x, x + block_size),
+                slice(y, y + block_size),
+            )
 
-                for y in range(
-                    max(0, i - search_range),
-                    min(height - block_size + 1, i + search_range + 1),
-                    block_size,
-                ):
-                    for x in range(
-                        max(0, j - search_range),
-                        min(width - block_size + 1, j + search_range + 1),
-                        block_size,
-                    ):
-                        candidate = search[..., y : y + block_size, x : x + block_size]
+            return block
 
-                        sad = np.sum(np.abs(block - candidate), axis=(-2, -1))
+        def pel2block(x: int) -> int:
+            return x // block_size
 
-                        if sad.size == 2:
-                            forward_prediction = np.argmin(sad)
-                            sad = sad[forward_prediction]
+        def select_output_block(x: int, y: int) -> tuple[slice, slice]:
+            output_block = (
+                slice(x, x + block_size),
+                slice(y, y + block_size),
+            )
 
-                        if sad < min_sad:
-                            min_sad = sad
+            return output_block
 
-                            best_match = ((x - j) // block_size, (y - i) // block_size)
+        def process_candidate(
+            i: int,
+            j: int,
+            x: int,
+            y: int,
+            threshold: int,
+        ) -> tuple[int, np.ndarray, np.ndarray]:
+            candidate: np.ndarray = search[..., *select_block(y, x)]
 
-                            if candidate.ndim == 3:
-                                best_match = (forward_prediction,) + best_match
-                                candidate = candidate[forward_prediction]
+            residual: np.ndarray = block - candidate
 
-                            residual = block - candidate
+            sad: np.ndarray = np.sum(np.abs(residual), axis=(-2, -1))
 
-                block_i = i // block_size
-                block_j = j // block_size
+            forward_prediction: int = int(np.argmin(sad))
+
+            sad: int = sad[forward_prediction]
+
+            residual = residual[forward_prediction]
+
+            best_match: np.ndarray = np.array(
+                [forward_prediction, pel2block(x - j), pel2block(y - i)]
+            )
+
+            return (sad, best_match, residual)
+
+        def search_area(i, j, block) -> tuple[np.ndarray, np.ndarray]:
+            sad: float = float("inf")
+
+            for y in range_search(i, height):
+                for x in range_search(j, width):
+                    s, b, r = process_candidate(i, j, x, y, sad)
+
+                    if s < sad:
+                        sad = s
+                        best_match = b
+                        residual = r
+
+            return (best_match, residual)
+
+        for i in range_process(height):
+            for j in range_process(width):
+                block: np.ndarray = target[..., *select_block(i, j)]
+
+                best_match, residual = search_area(i, j, block)
+
+                block_i = pel2block(i)
+                block_j = pel2block(j)
 
                 motion_vectors[block_i, block_j] = best_match
-                residuals[block_i, block_j] = residual.squeeze()
+                residuals[block_i, block_j] = residual
 
         return (motion_vectors, residuals)
 
