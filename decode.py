@@ -20,6 +20,7 @@ from frame import (
 class DecoderConfig:
     metadata: VideoMetadata
     stream: StreamConfig
+    decode_buffer_size: int = 32
 
 
 class Decoder:
