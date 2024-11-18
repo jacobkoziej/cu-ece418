@@ -78,14 +78,14 @@ class Decoder:
             case _:
                 return None
 
-        if len(decode_buffer) >= config.decode_buffer_size:
-            _ = decode_buffer.popleft()
-
-        if len(reference_buffer) >= config.reference_buffer_size:
-            _ = reference_buffer.popleft()
-
         if not isinstance(frame, BFrame):
+            if len(reference_buffer) >= reference_buffer.maxlen:
+                _ = reference_buffer.popleft()
+
             reference_buffer.append(decoded_frame)
+
+        if len(decode_buffer) >= decode_buffer.maxlen:
+            _ = decode_buffer.popleft()
 
         decode_buffer.append(decoded_frame)
 
