@@ -24,6 +24,7 @@
             ffmpeg-python
             ipython
             numpy
+            scipy
           ]
         );
 
