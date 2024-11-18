@@ -78,16 +78,20 @@ class Decoder:
             case _:
                 return None
 
+        if len(decode_buffer) >= decode_buffer.maxlen:
+            _ = decode_buffer.popleft()
+
+        insert_index: int = len(decode_buffer) - 1
+
         if not isinstance(frame, BFrame):
             if len(reference_buffer) >= reference_buffer.maxlen:
                 _ = reference_buffer.popleft()
 
             reference_buffer.append(decoded_frame)
 
-        if len(decode_buffer) >= decode_buffer.maxlen:
-            _ = decode_buffer.popleft()
+            insert_index += 1
 
-        decode_buffer.append(decoded_frame)
+        decode_buffer.insert(insert_index, decoded_frame)
 
         if unpad:
             decoded_frame = self._unpad_frame(decoded_frame)
