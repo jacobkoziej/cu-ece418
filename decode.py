@@ -21,6 +21,7 @@ class DecoderConfig:
     metadata: VideoMetadata
     stream: StreamConfig
     decode_buffer_size: int = 32
+    reference_buffer_size: int = 2
 
 
 class Decoder:
