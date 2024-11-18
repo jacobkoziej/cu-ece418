@@ -5,11 +5,15 @@
 
 import numpy as np
 
+from collections import deque
 from collections.abc import Callable
 from dataclasses import dataclass
 
 from fetch import VideoMetadata
 from frame import (
+    BFrame,
+    IFrame,
+    PFrame,
     StreamConfig,
     pad_width,
     unpad_slice,
@@ -35,6 +39,61 @@ class Decoder:
         self._unpad_frame: Callable[[np.ndarray], np.ndarray] = self.unpad_frame(
             pad_width(height, width, block_size)
         )
+
+        self._decode_buffer = deque(maxlen=config.decode_buffer_size)
+        self._reference_buffer = deque(maxlen=config.reference_buffer_size)
+
+    def decode(
+        self,
+        frame: BFrame | IFrame | PFrame,
+        *,
+        unpad: bool = True,
+    ) -> np.ndarray:
+        decoded_frame: np.ndarray
+        reference_frames: np.ndarray
+
+        config: DecoderConfig = self.config
+        decode_buffer: deque = self._decode_buffer
+        reference_buffer: deque = self._reference_buffer
+
+        def get_reference_frames(x: int) -> np.ndarray:
+            reference_frames: np.ndarray = np.array(
+                [reference_buffer[-i] for i in range(x + 1, 0, -1)]
+            )
+
+            return reference_frames
+
+        match frame:
+            case BFrame() | PFrame():
+                reference_frames = get_reference_frames(frame.reference_frame)
+
+                decoded_frame = self.decode_frame(
+                    reference_frames,
+                    frame.motion_vectors,
+                    frame.residuals,
+                )
+
+            case IFrame():
+                decoded_frame = frame.frame
+
+            case _:
+                return None
+
+        if len(decode_buffer) >= config.decode_buffer_size:
+            _ = decode_buffer.popleft()
+
+        if len(reference_buffer) >= config.reference_buffer_size:
+            _ = reference_buffer.popleft()
+
+        if not isinstance(frame, BFrame):
+            reference_buffer.append(decoded_frame)
+
+        decode_buffer.append(decoded_frame)
+
+        if unpad:
+            decoded_frame = self._unpad_frame(decoded_frame)
+
+        return decoded_frame
 
     def decode_frame(
         self,
