@@ -55,16 +55,9 @@ class Decoder:
         decode_buffer: deque = self._decode_buffer
         reference_buffer: deque = self._reference_buffer
 
-        def get_reference_frames(x: int) -> np.ndarray:
-            reference_frames: np.ndarray = np.array(
-                [reference_buffer[-i] for i in range(x + 1, 0, -1)]
-            )
-
-            return reference_frames
-
         match frame:
             case BFrame() | PFrame():
-                reference_frames = get_reference_frames(frame.reference_frame)
+                reference_frames = self.reference_frames(frame.reference_frame)
 
                 decoded_frame = self.decode_frame(
                     reference_frames,
@@ -158,6 +151,17 @@ class Decoder:
                 decoded_frame[*block[1:]] = reference_frame + residual
 
         return decoded_frame
+
+    def reference_frames(self, x: int) -> np.ndarray:
+        assert x >= 0
+
+        reference_buffer: deque = self._reference_buffer
+
+        reference_frames: np.ndarray = np.array(
+            [reference_buffer[-i] for i in range(x + 1, 0, -1)]
+        )
+
+        return reference_frames
 
     @staticmethod
     def unpad_frame(
