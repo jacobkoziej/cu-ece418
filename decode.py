@@ -25,7 +25,6 @@ class DecoderConfig:
     metadata: VideoMetadata
     stream: StreamConfig
     decode_buffer_size: int = 32
-    reference_buffer_size: int = 2
 
 
 class Decoder:
@@ -41,7 +40,7 @@ class Decoder:
         )
 
         self._decode_buffer = deque(maxlen=config.decode_buffer_size)
-        self._reference_buffer = deque(maxlen=config.reference_buffer_size)
+        self._reference_buffer = deque(maxlen=config.stream.reference_frames_max)
 
     def decode(
         self,

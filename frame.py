@@ -29,6 +29,7 @@ class PFrame:
 @dataclass
 class StreamConfig:
     block_size: int = 16
+    reference_frames_max: int = 2
 
 
 def pad_width(
