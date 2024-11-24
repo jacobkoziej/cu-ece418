@@ -15,3 +15,12 @@ options = [
 includes = [
   "*.py",
 ]
+
+[formatter.py-lint]
+command = "ruff"
+options = [
+  "check",
+]
+includes = [
+  "*.py",
+]

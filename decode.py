@@ -51,7 +51,6 @@ class Decoder:
         decoded_frame: np.ndarray
         reference_frames: np.ndarray
 
-        config: DecoderConfig = self.config
         decode_buffer: deque = self._decode_buffer
         reference_buffer: deque = self._reference_buffer
 
