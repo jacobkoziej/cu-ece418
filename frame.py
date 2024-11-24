@@ -6,6 +6,7 @@
 import numpy as np
 
 from dataclasses import dataclass
+from typing import NewType
 
 
 @dataclass
@@ -24,6 +25,12 @@ class PFrame:
     motion_vectors: np.ndarray
     reference_frame: int
     residuals: np.ndarray
+
+
+FrameType = NewType(
+    "FrameType",
+    BFrame | IFrame | PFrame,
+)
 
 
 @dataclass
