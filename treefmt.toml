@@ -35,6 +35,19 @@ includes = [
   "*.py",
 ]
 
+[formatter.sh]
+command = "shfmt"
+options = [
+  "--write",
+  "--binary-next-line",
+  "--space-redirects",
+  "--func-next-line",
+]
+includes = [
+  "*.sh",
+  ".envrc",
+]
+
 [formatter.toml]
 command = "toml-sort"
 options = [
