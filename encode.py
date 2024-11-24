@@ -5,11 +5,25 @@
 
 import numpy as np
 
+from collections import deque
 from collections.abc import Callable
 from dataclasses import dataclass
+from typing import (
+    Final,
+    Iterator,
+    Optional,
+)
 
+from decode import (
+    Decoder,
+    DecoderConfig,
+)
 from fetch import VideoMetadata
 from frame import (
+    BFrame,
+    FrameType,
+    IFrame,
+    PFrame,
     StreamConfig,
     pad_width,
 )
@@ -30,7 +44,7 @@ class EncoderConfig:
 
 
 class Encoder:
-    def __init__(self, config: EncoderConfig):
+    def __init__(self, config: EncoderConfig, stream: Iterator[np.ndarray]):
         self.config: EncoderConfig = config
 
         height: int = config.metadata.height
@@ -40,6 +54,76 @@ class Encoder:
         self._pad_frame: Callable[[np.ndarray], np.ndarray] = self.pad_frame(
             height, width, block_size
         )
+
+        self._stream: Iterator[np.ndarray] = stream
+
+        decoder_config: DecoderConfig = DecoderConfig(
+            stream=config.stream,
+            metadata=config.metadata,
+        )
+        self._decoder: Decoder = Decoder(decoder_config)
+
+        self._current_frame: int = -1
+        self._bframe_queue: deque = deque()
+
+    def _step(self, x: np.ndarray) -> list[FrameType]:
+        assert x.ndim == 3
+
+        config: Final[EncoderConfig] = self.config
+        decoder: Final[Decoder] = self._decoder
+        bframe_queue: Final[deque] = self._bframe_queue
+
+        reference_frames: np.ndarray
+        motion_vectors: np.ndarray
+        residuals: np.ndarray
+
+        self._current_frame += 1
+
+        frame: Optional[FrameType] = None
+
+        iframe: bool = not self._current_frame % config.frame_rate.i
+        pframe: bool = not self._current_frame % config.frame_rate.p or (
+            self._current_frame == config.metadata.frames - 1
+        )
+
+        if iframe:
+            frame = IFrame(x.squeeze())
+
+        elif pframe:
+            reference_frames = decoder.reference_frames(1)
+            motion_vectors, residuals = self.block_match(reference_frames, x)
+
+            frame = PFrame(
+                motion_vectors=motion_vectors,
+                reference_frames=1,
+                residuals=residuals,
+            )
+
+        if not frame:
+            bframe_queue.append(x)
+
+            return []
+
+        _ = decoder.decode(frame)
+
+        frames: list[np.ndarray] = [frame]
+
+        for x in bframe_queue:
+            reference_frames = decoder.reference_frames(2)
+            motion_vectors, residuals = self.block_match(reference_frames, x)
+
+            frame = BFrame(
+                motion_vectors=motion_vectors,
+                reference_frames=2,
+                residuals=residuals,
+            )
+            frames += [frame]
+
+            _ = decoder.decode(frame)
+
+        bframe_queue.clear()
+
+        return frames
 
     def block_match(
         self, search: np.ndarray, target: np.ndarray
@@ -173,3 +257,23 @@ class Encoder:
             return np.pad(x, pad_width, "edge")
 
         return pad_frame
+
+    def step(self, steps: int) -> list[np.ndarray]:
+        assert steps >= 1
+
+        config: Final[EncoderConfig] = self.config
+        stream: Final[Iterator[np.ndarray]] = self._stream
+
+        encoded_frames: list[np.ndarray] = []
+
+        for step in range(steps):
+            if self._current_frame >= config.metadata.frames:
+                break
+
+            frame: np.ndarray
+            frame = self._pad_frame(next(stream))
+            frame = np.expand_dims(frame, 0)
+
+            encoded_frames += self._step(frame)
+
+        return encoded_frames
