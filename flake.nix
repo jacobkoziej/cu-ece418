@@ -39,6 +39,7 @@
               black
               ffmpeg
               ruff
+              toml-sort
               treefmt2
             ]);
         };
