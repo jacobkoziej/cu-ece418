@@ -1,9 +1,17 @@
 [formatter.nix]
 command = "nix"
-options = ["fmt"]
-includes = ["*.nix"]
+options = [
+  "fmt",
+]
+includes = [
+  "*.nix",
+]
 
-[formatter.python]
+[formatter.py]
 command = "black"
-options = ["--line-length", "79"]
-includes = ["*.py"]
+options = [
+  "--line-length=79",
+]
+includes = [
+  "*.py",
+]
