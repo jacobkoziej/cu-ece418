@@ -104,7 +104,7 @@ class Encoder:
 
             return []
 
-        _ = decoder.decode(frame)
+        decoder.step(frame)
 
         frames: list[np.ndarray] = [frame]
 
@@ -119,7 +119,7 @@ class Encoder:
             )
             frames += [frame]
 
-            _ = decoder.decode(frame)
+            decoder.step(frame)
 
         bframe_queue.clear()
 

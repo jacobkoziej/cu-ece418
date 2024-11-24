@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from fetch import VideoMetadata
 from frame import (
     BFrame,
+    FrameType,
     IFrame,
     PFrame,
     StreamConfig,
@@ -43,56 +44,6 @@ class Decoder:
         self._reference_buffer = deque(
             maxlen=config.stream.reference_frames_max
         )
-
-    def decode(
-        self,
-        frame: BFrame | IFrame | PFrame,
-        *,
-        unpad: bool = True,
-    ) -> np.ndarray:
-        decoded_frame: np.ndarray
-        reference_frames: np.ndarray
-
-        decode_buffer: deque = self._decode_buffer
-        reference_buffer: deque = self._reference_buffer
-
-        match frame:
-            case BFrame() | PFrame():
-                reference_frames = self.reference_frames(
-                    frame.reference_frames
-                )
-
-                decoded_frame = self.decode_frame(
-                    reference_frames,
-                    frame.motion_vectors,
-                    frame.residuals,
-                )
-
-            case IFrame():
-                decoded_frame = frame.frame
-
-            case _:
-                return None
-
-        if len(decode_buffer) >= decode_buffer.maxlen:
-            _ = decode_buffer.popleft()
-
-        insert_index: int = len(decode_buffer) - 1
-
-        if not isinstance(frame, BFrame):
-            if len(reference_buffer) >= reference_buffer.maxlen:
-                _ = reference_buffer.popleft()
-
-            reference_buffer.append(decoded_frame)
-
-            insert_index += 1
-
-        decode_buffer.insert(insert_index, decoded_frame)
-
-        if unpad:
-            decoded_frame = self._unpad_frame(decoded_frame)
-
-        return decoded_frame
 
     def decode_frame(
         self,
@@ -167,6 +118,46 @@ class Decoder:
         )
 
         return reference_frames
+
+    def step(self, frame: FrameType) -> None:
+        decoded_frame: np.ndarray
+        reference_frames: np.ndarray
+
+        decode_buffer: deque = self._decode_buffer
+        reference_buffer: deque = self._reference_buffer
+
+        match frame:
+            case BFrame() | PFrame():
+                reference_frames = self.reference_frames(
+                    frame.reference_frames
+                )
+
+                decoded_frame = self.decode_frame(
+                    reference_frames,
+                    frame.motion_vectors,
+                    frame.residuals,
+                )
+
+            case IFrame():
+                decoded_frame = frame.frame
+
+            case _:
+                return None
+
+        if len(decode_buffer) >= decode_buffer.maxlen:
+            _ = decode_buffer.popleft()
+
+        insert_index: int = len(decode_buffer) - 1
+
+        if not isinstance(frame, BFrame):
+            if len(reference_buffer) >= reference_buffer.maxlen:
+                _ = reference_buffer.popleft()
+
+            reference_buffer.append(decoded_frame)
+
+            insert_index += 1
+
+        decode_buffer.insert(insert_index, decoded_frame)
 
     @staticmethod
     def unpad_frame(
