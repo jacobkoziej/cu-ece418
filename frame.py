@@ -12,6 +12,7 @@ from typing import NewType
 @dataclass
 class BFrame:
     motion_vectors: np.ndarray
+    reference_frames: int
     residuals: np.ndarray
 
 
@@ -23,7 +24,7 @@ class IFrame:
 @dataclass
 class PFrame:
     motion_vectors: np.ndarray
-    reference_frame: int
+    reference_frames: int
     residuals: np.ndarray
 
 

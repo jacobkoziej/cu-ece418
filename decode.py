@@ -58,7 +58,9 @@ class Decoder:
 
         match frame:
             case BFrame() | PFrame():
-                reference_frames = self.reference_frames(frame.reference_frame)
+                reference_frames = self.reference_frames(
+                    frame.reference_frames
+                )
 
                 decoded_frame = self.decode_frame(
                     reference_frames,
@@ -161,7 +163,7 @@ class Decoder:
         reference_buffer: deque = self._reference_buffer
 
         reference_frames: np.ndarray = np.array(
-            [reference_buffer[-i] for i in range(x + 1, 0, -1)]
+            [reference_buffer[-i] for i in range(x, 0, -1)]
         )
 
         return reference_frames
