@@ -35,12 +35,14 @@ class Decoder:
         width: int = config.metadata.width
         block_size: int = config.stream.block_size
 
-        self._unpad_frame: Callable[[np.ndarray], np.ndarray] = self.unpad_frame(
-            pad_width(height, width, block_size)
+        self._unpad_frame: Callable[[np.ndarray], np.ndarray] = (
+            self.unpad_frame(pad_width(height, width, block_size))
         )
 
         self._decode_buffer = deque(maxlen=config.decode_buffer_size)
-        self._reference_buffer = deque(maxlen=config.stream.reference_frames_max)
+        self._reference_buffer = deque(
+            maxlen=config.stream.reference_frames_max
+        )
 
     def decode(
         self,
@@ -143,7 +145,9 @@ class Decoder:
                 motion_vector: np.ndarray = motion_vectors[i, j]
                 residual: np.ndarray = residuals[i, j]
 
-                block: tuple[int, slice, slice] = select_block(i, j, motion_vector)
+                block: tuple[int, slice, slice] = select_block(
+                    i, j, motion_vector
+                )
 
                 reference_frame: np.ndarray = reference_frames[*block]
 

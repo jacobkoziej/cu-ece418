@@ -30,7 +30,9 @@ def frames_external_format(
     )
 
     args: list[str] = (
-        ffmpeg.input(path).output("pipe:", format="rawvideo", pix_fmt="gray").compile()
+        ffmpeg.input(path)
+        .output("pipe:", format="rawvideo", pix_fmt="gray")
+        .compile()
     )
 
     process: Popen = Popen(args, stdin=DEVNULL, stdout=PIPE, stderr=DEVNULL)
@@ -65,7 +67,9 @@ def probe_external_format(
 
     probe: dict[str, dict] = ffmpeg.probe(path, **ffmpeg_args)
 
-    stream: dict = next(s for s in probe["streams"] if s["codec_type"] == "video")
+    stream: dict = next(
+        s for s in probe["streams"] if s["codec_type"] == "video"
+    )
 
     frame_rate: float = float(Fraction(stream["r_frame_rate"]))
     frames: int = int(float(stream["duration"]) * frame_rate)
