@@ -38,6 +38,7 @@
             ++ (with pkgs; [
               black
               ffmpeg
+              mdformat
               ruff
               toml-sort
               treefmt2
