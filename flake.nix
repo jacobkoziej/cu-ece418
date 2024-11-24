@@ -40,6 +40,7 @@
               ffmpeg
               mdformat
               ruff
+              shfmt
               toml-sort
               treefmt2
             ]);
