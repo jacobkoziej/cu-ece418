@@ -34,3 +34,11 @@ options = [
 includes = [
   "*.toml",
 ]
+
+[global]
+excludes = [
+  "*.gitignore",
+  "*.lock",
+  ".editorconfig",
+  "LICENSE.md",
+]
