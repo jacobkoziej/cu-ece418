@@ -8,12 +8,14 @@ import numpy as np
 from dataclasses import dataclass
 from typing import NewType
 
+from quantize import QuantizedValues
+
 
 @dataclass
 class BFrame:
     motion_vectors: np.ndarray
     reference_frames: int
-    residuals: np.ndarray
+    residuals: QuantizedValues
 
 
 @dataclass
@@ -25,7 +27,7 @@ class IFrame:
 class PFrame:
     motion_vectors: np.ndarray
     reference_frames: int
-    residuals: np.ndarray
+    residuals: QuantizedValues
 
 
 FrameType = NewType(
@@ -37,6 +39,7 @@ FrameType = NewType(
 @dataclass
 class StreamConfig:
     block_size: int = 16
+    quality: int = 16
     reference_frames_max: int = 2
 
 

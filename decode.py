@@ -8,6 +8,7 @@ import numpy as np
 from collections import deque
 from collections.abc import Callable
 from dataclasses import dataclass
+from typing import Final
 
 from fetch import VideoMetadata
 from frame import (
@@ -18,6 +19,10 @@ from frame import (
     StreamConfig,
     pad_width,
     unpad_slice,
+)
+from quantize import (
+    Magnitude,
+    Quantizer,
 )
 
 
@@ -43,6 +48,13 @@ class Decoder:
         self._decode_buffer = deque(maxlen=config.decode_buffer_size)
         self._reference_buffer = deque(
             maxlen=config.stream.reference_frames_max
+        )
+
+        block_size: int = config.stream.block_size
+        block_shape: tuple[int, int] = (block_size, block_size)
+        self._quantizer: Magnitude = Magnitude(
+            quality=config.stream.quality,
+            block_shape=block_shape,
         )
 
     def decode_frame(
@@ -132,6 +144,7 @@ class Decoder:
         reference_frames: np.ndarray
 
         decode_buffer: deque = self._decode_buffer
+        quantizer: Final[Quantizer] = self._quantizer
         reference_buffer: deque = self._reference_buffer
 
         match frame:
@@ -143,7 +156,7 @@ class Decoder:
                 decoded_frame = self.decode_frame(
                     reference_frames,
                     frame.motion_vectors,
-                    frame.residuals,
+                    quantizer.dequantize(frame.residuals),
                 )
 
             case IFrame():

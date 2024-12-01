@@ -27,6 +27,10 @@ from frame import (
     StreamConfig,
     pad_width,
 )
+from quantize import (
+    Magnitude,
+    Quantizer,
+)
 
 
 @dataclass
@@ -63,15 +67,23 @@ class Encoder:
         )
         self._decoder: Decoder = Decoder(decoder_config)
 
+        block_size: int = config.stream.block_size
+        block_shape: tuple[int, int] = (block_size, block_size)
+        self._quantizer: Magnitude = Magnitude(
+            quality=config.stream.quality,
+            block_shape=block_shape,
+        )
+
         self._current_frame: int = -1
         self._bframe_queue: deque = deque()
 
     def _step(self, x: np.ndarray) -> list[FrameType]:
         assert x.ndim == 3
 
+        bframe_queue: Final[deque] = self._bframe_queue
         config: Final[EncoderConfig] = self.config
         decoder: Final[Decoder] = self._decoder
-        bframe_queue: Final[deque] = self._bframe_queue
+        quantizer: Final[Quantizer] = self._quantizer
 
         reference_frames: np.ndarray
         motion_vectors: np.ndarray
@@ -96,7 +108,7 @@ class Encoder:
             frame = PFrame(
                 motion_vectors=motion_vectors,
                 reference_frames=1,
-                residuals=residuals,
+                residuals=quantizer.quantize(residuals),
             )
 
         if not frame:
@@ -115,7 +127,7 @@ class Encoder:
             frame = BFrame(
                 motion_vectors=motion_vectors,
                 reference_frames=2,
-                residuals=residuals,
+                residuals=quantizer.quantize(residuals),
             )
             frames += [frame]
 
