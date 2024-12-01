@@ -23,6 +23,7 @@
 
         python-pkgs = python.withPackages (
           python-pkgs: with python-pkgs; [
+            einops
             ffmpeg-python
             ipython
             numpy
