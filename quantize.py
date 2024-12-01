@@ -9,6 +9,7 @@ from abc import (
     ABC,
     abstractmethod,
 )
+from dataclasses import dataclass
 from typing import Final
 
 from einops import rearrange
@@ -18,21 +19,20 @@ from scipy.fft import (
 )
 
 
+@dataclass
+class QuantizedValues:
+    dc: np.ndarray
+    ac: np.ndarray
+    indicies: np.ndarray
+
+
 class Quantizer(ABC):
     @abstractmethod
-    def quantize(
-        self,
-        x: np.ndarray,
-    ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    def quantize(self, x: np.ndarray) -> QuantizedValues:
         pass
 
     @abstractmethod
-    def dequantize(
-        self,
-        dc: np.ndarray,
-        ac: np.ndarray,
-        indicies: np.ndarray,
-    ) -> np.ndarray:
+    def dequantize(self, quantized_values: QuantizedValues) -> np.ndarray:
         pass
 
 
@@ -96,14 +96,17 @@ class Magnitude(Quantizer):
         ac = ac.reshape(*base_shape, -1)
         indicies = indicies.reshape(*base_shape, -1)
 
-        return (dc, ac, indicies)
+        return QuantizedValues(
+            dc=dc,
+            ac=ac,
+            indicies=indicies,
+        )
 
-    def dequantize(
-        self,
-        dc: np.ndarray,
-        ac: np.ndarray,
-        indicies: np.ndarray,
-    ) -> np.ndarray:
+    def dequantize(self, quantized_values: QuantizedValues) -> np.ndarray:
+        dc: np.ndarray = quantized_values.dc
+        ac: np.ndarray = quantized_values.ac
+        indicies: np.ndarray = quantized_values.indicies
+
         assert dc.ndim >= 2
         assert ac.ndim >= 2
         assert indicies.ndim >= 2
