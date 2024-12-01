@@ -102,9 +102,17 @@ class Decoder:
                     i, j, motion_vector
                 )
 
-                reference_frame: np.ndarray = reference_frames[*block]
+                reference_frame: np.ndarray = reference_frames[block]
 
-                decoded_frame[*block[1:]] = reference_frame + residual
+                y = block2pel(i)
+                x = block2pel(j)
+
+                write_block: tuple[slice, slice] = (
+                    slice(y, y + block_size),
+                    slice(x, x + block_size),
+                )
+
+                decoded_frame[write_block] = reference_frame + residual
 
         return decoded_frame
 
