@@ -30,6 +30,7 @@
             msgpack-numpy
             numpy
             scipy
+            tqdm
           ]
         );
 
