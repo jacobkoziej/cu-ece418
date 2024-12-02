@@ -4,6 +4,8 @@
 # Copyright (C) 2024  Jacob Koziej <jacobkoziej@gmail.com>
 
 import msgpack
+import msgpack_numpy as msgpack_np
+import numpy as np
 
 from dataclasses import asdict
 from typing import Any
@@ -13,6 +15,16 @@ from frame import StreamConfig
 
 
 def _decode(obj: Any) -> Any:
+    if isinstance(obj, bytes):
+        return msgpack.unpackb(obj, object_hook=msgpack_np.decode)
+
+    if isinstance(obj, dict):
+        for k, v in obj.items():
+            obj[k] = _decode(v)
+
+    else:
+        return obj
+
     if (k := str(StreamConfig)) in obj:
         obj.pop(k)
 
@@ -29,7 +41,13 @@ def _decode(obj: Any) -> Any:
 def _encode(obj: Any) -> Any:
     match obj:
         case StreamConfig() | VideoMetadata():
-            return asdict(obj) | {str(type(obj)): True}
+            obj = asdict(obj) | {str(type(obj)): True}
+
+            for k, v in obj.items():
+                obj[k] = _encode(v)
+
+        case np.ndarray():
+            obj = msgpack.packb(obj, default=msgpack_np.encode)
 
     return obj
 
