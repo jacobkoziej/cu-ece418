@@ -10,7 +10,10 @@ import msgpack_numpy as msgpack_np
 import numpy as np
 
 from dataclasses import asdict
-from io import BufferedWriter
+from io import (
+    BufferedReader,
+    BufferedWriter,
+)
 from typing import Any
 
 from fetch import VideoMetadata
@@ -94,6 +97,14 @@ def decode(stream: bytes) -> Any:
 
 def encode(obj: Any) -> bytes:
     return msgpack.packb(obj, default=_encode)
+
+
+def read(stream: BufferedReader) -> Any:
+    length: int = struct.unpack("<L", stream.read(4))[0]
+
+    b: bytes = stream.read(length)
+
+    return decode(b)
 
 
 def write(stream: BufferedWriter, obj: Any) -> int:
