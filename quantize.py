@@ -51,6 +51,9 @@ class Magnitude(Quantizer):
 
         flat_shape: int = block_shape[0] * block_shape[1]
 
+        assert flat_shape <= 256
+        assert flat_shape >= 1
+
         assert quality <= flat_shape
         assert quality >= 1
 
@@ -91,6 +94,7 @@ class Magnitude(Quantizer):
 
         dc = dc.astype(np.float16)
         ac = ac.astype(np.float16)
+        indicies = indicies.astype(np.uint8)
 
         dc = dc.reshape(*base_shape, -1)
         ac = ac.reshape(*base_shape, -1)

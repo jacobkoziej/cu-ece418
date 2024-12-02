@@ -250,6 +250,10 @@ class Encoder:
                 motion_vectors[block_i, block_j] = best_match
                 residuals[block_i, block_j] = residual
 
+        assert np.all((motion_vectors >= -128) & (motion_vectors <= 127))
+
+        motion_vectors = motion_vectors.astype(np.int8)
+
         return (motion_vectors, residuals)
 
     @staticmethod
