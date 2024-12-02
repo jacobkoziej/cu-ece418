@@ -12,6 +12,7 @@ from typing import Any
 
 from fetch import VideoMetadata
 from frame import (
+    BFrame,
     IFrame,
     PFrame,
     StreamConfig,
@@ -29,6 +30,11 @@ def _decode(obj: Any) -> Any:
 
     else:
         return obj
+
+    if (k := str(BFrame)) in obj:
+        obj.pop(k)
+
+        return BFrame(**obj)
 
     if (k := str(IFrame)) in obj:
         obj.pop(k)
@@ -61,7 +67,8 @@ def _decode(obj: Any) -> Any:
 def _encode(obj: Any) -> Any:
     match obj:
         case (
-            IFrame()
+            BFrame()
+            | IFrame()
             | PFrame()
             | QuantizedValues()
             | StreamConfig()
