@@ -5,10 +5,6 @@
 
 import msgpack
 
-from io import (
-    BufferedReader,
-    BufferedWriter,
-)
 from typing import Any
 
 
@@ -20,9 +16,9 @@ def _encode(obj: Any) -> Any:
     return obj
 
 
-def decode(stream: BufferedReader) -> Any:
-    return msgpack.unpack(stream, object_hook=_decode)
+def decode(stream: bytes) -> Any:
+    return msgpack.unpackb(stream, object_hook=_decode)
 
 
-def encode(stream: BufferedWriter, obj: Any) -> None:
-    msgpack.pack(obj, stream, default=_encode)
+def encode(obj: Any) -> bytes:
+    return msgpack.packb(obj, default=_encode)
