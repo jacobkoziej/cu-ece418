@@ -27,6 +27,7 @@
             ffmpeg-python
             ipython
             msgpack
+            msgpack-numpy
             numpy
             scipy
           ]
