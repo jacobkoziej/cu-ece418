@@ -15,6 +15,7 @@ from frame import (
     IFrame,
     StreamConfig,
 )
+from quantize import QuantizedValues
 
 
 def _decode(obj: Any) -> Any:
@@ -38,6 +39,11 @@ def _decode(obj: Any) -> Any:
 
         return StreamConfig(**obj)
 
+    if (k := str(QuantizedValues)) in obj:
+        obj.pop(k)
+
+        return QuantizedValues(**obj)
+
     if (k := str(VideoMetadata)) in obj:
         obj.pop(k)
 
@@ -48,7 +54,7 @@ def _decode(obj: Any) -> Any:
 
 def _encode(obj: Any) -> Any:
     match obj:
-        case IFrame() | StreamConfig() | VideoMetadata():
+        case IFrame() | QuantizedValues() | StreamConfig() | VideoMetadata():
             obj = asdict(obj) | {str(type(obj)): True}
 
             for k, v in obj.items():
