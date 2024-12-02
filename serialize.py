@@ -11,7 +11,10 @@ from dataclasses import asdict
 from typing import Any
 
 from fetch import VideoMetadata
-from frame import StreamConfig
+from frame import (
+    IFrame,
+    StreamConfig,
+)
 
 
 def _decode(obj: Any) -> Any:
@@ -24,6 +27,11 @@ def _decode(obj: Any) -> Any:
 
     else:
         return obj
+
+    if (k := str(IFrame)) in obj:
+        obj.pop(k)
+
+        return IFrame(**obj)
 
     if (k := str(StreamConfig)) in obj:
         obj.pop(k)
@@ -40,7 +48,7 @@ def _decode(obj: Any) -> Any:
 
 def _encode(obj: Any) -> Any:
     match obj:
-        case StreamConfig() | VideoMetadata():
+        case IFrame() | StreamConfig() | VideoMetadata():
             obj = asdict(obj) | {str(type(obj)): True}
 
             for k, v in obj.items():
