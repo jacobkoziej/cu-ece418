@@ -5,14 +5,26 @@
 
 import msgpack
 
+from dataclasses import asdict
 from typing import Any
+
+from fetch import VideoMetadata
 
 
 def _decode(obj: Any) -> Any:
+    if (k := str(VideoMetadata)) in obj:
+        obj.pop(k)
+
+        return VideoMetadata(**obj)
+
     return obj
 
 
 def _encode(obj: Any) -> Any:
+    match obj:
+        case VideoMetadata():
+            return asdict(obj) | {str(type(obj)): True}
+
     return obj
 
 
