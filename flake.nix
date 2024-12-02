@@ -26,6 +26,7 @@
             einops
             ffmpeg-python
             ipython
+            msgpack
             numpy
             scipy
           ]
