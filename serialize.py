@@ -3,11 +3,14 @@
 # serialize.py -- serialize stream
 # Copyright (C) 2024  Jacob Koziej <jacobkoziej@gmail.com>
 
+import struct
+
 import msgpack
 import msgpack_numpy as msgpack_np
 import numpy as np
 
 from dataclasses import asdict
+from io import BufferedWriter
 from typing import Any
 
 from fetch import VideoMetadata
@@ -91,3 +94,14 @@ def decode(stream: bytes) -> Any:
 
 def encode(obj: Any) -> bytes:
     return msgpack.packb(obj, default=_encode)
+
+
+def write(stream: BufferedWriter, obj: Any) -> int:
+    b: bytes = encode(obj)
+
+    count: int = 0
+
+    count += stream.write(struct.pack("<L", len(b)))
+    count += stream.write(b)
+
+    return count
