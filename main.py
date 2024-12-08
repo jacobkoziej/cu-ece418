@@ -47,10 +47,22 @@ def main():
         type=Path,
     )
     parser.add_argument(
+        "--i-frame-rate",
+        default=32,
+        required=False,
+        type=int,
+    )
+    parser.add_argument(
         "-o",
         "--output",
         required=True,
         type=Path,
+    )
+    parser.add_argument(
+        "--p-frame-rate",
+        default=8,
+        required=False,
+        type=int,
     )
     parser.add_argument(
         "-s",
@@ -73,7 +85,10 @@ def main():
 
     stream_config: StreamConfig = StreamConfig()
 
-    frame_rate_config: EncoderFrameRateConfig = EncoderFrameRateConfig()
+    frame_rate_config: EncoderFrameRateConfig = EncoderFrameRateConfig(
+        i=args.i_frame_rate,
+        p=args.p_frame_rate,
+    )
     encoder_config: EncoderConfig = EncoderConfig(
         frame_rate=frame_rate_config,
         stream=stream_config,
