@@ -9,7 +9,10 @@ import msgpack
 import msgpack_numpy as msgpack_np
 import numpy as np
 
-from dataclasses import asdict
+from dataclasses import (
+    fields,
+    is_dataclass,
+)
 from io import (
     BufferedReader,
     BufferedWriter,
@@ -24,6 +27,13 @@ from frame import (
     StreamConfig,
 )
 from quantize import QuantizedValues
+
+
+def _dataclass2dict(obj: Any) -> dict[str, Any]:
+    if not is_dataclass(obj):
+        return obj
+
+    return {field.name: getattr(obj, field.name) for field in fields(obj)}
 
 
 def _decode(obj: Any) -> Any:
@@ -80,7 +90,7 @@ def _encode(obj: Any) -> Any:
             | StreamConfig()
             | VideoMetadata()
         ):
-            obj = asdict(obj) | {str(type(obj)): True}
+            obj = _dataclass2dict(obj) | {str(type(obj)): True}
 
             for k, v in obj.items():
                 obj[k] = _encode(v)
