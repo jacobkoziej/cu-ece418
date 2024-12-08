@@ -47,6 +47,12 @@ def main():
         type=int,
     )
     parser.add_argument(
+        "--block-size",
+        default=16,
+        required=False,
+        type=int,
+    )
+    parser.add_argument(
         "-i",
         "--input",
         required=True,
@@ -71,6 +77,18 @@ def main():
         type=int,
     )
     parser.add_argument(
+        "--quality",
+        default=16,
+        required=False,
+        type=int,
+    )
+    parser.add_argument(
+        "--reference-frames-max",
+        default=2,
+        required=False,
+        type=int,
+    )
+    parser.add_argument(
         "-s",
         "--step-size",
         default=16,
@@ -89,7 +107,11 @@ def main():
         args.input, metadata
     )
 
-    stream_config: StreamConfig = StreamConfig()
+    stream_config: StreamConfig = StreamConfig(
+        block_size=args.block_size,
+        quality=args.quality,
+        reference_frames_max=args.reference_frames_max,
+    )
 
     frame_rate_config: EncoderFrameRateConfig = EncoderFrameRateConfig(
         i=args.i_frame_rate,
