@@ -41,6 +41,12 @@ def main():
     )
 
     parser.add_argument(
+        "--block-search-limit",
+        default=1,
+        required=False,
+        type=int,
+    )
+    parser.add_argument(
         "-i",
         "--input",
         required=True,
@@ -93,6 +99,7 @@ def main():
         frame_rate=frame_rate_config,
         stream=stream_config,
         metadata=metadata,
+        search_limit=args.block_search_limit,
     )
 
     encoder: Encoder = Encoder(encoder_config, frame_fetcher)
