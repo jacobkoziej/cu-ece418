@@ -73,7 +73,7 @@ def main():
     parser.add_argument(
         "-s",
         "--step-size",
-        default=8,
+        default=16,
         required=False,
         type=int,
     )
