@@ -52,6 +52,13 @@ def main():
         required=True,
         type=Path,
     )
+    parser.add_argument(
+        "-s",
+        "--step-size",
+        default=8,
+        required=False,
+        type=int,
+    )
 
     args: Namespace
     ffmpeg_args: list[str]
@@ -79,8 +86,8 @@ def main():
         write(f, metadata)
         write(f, stream_config)
 
-        for _ in trange(metadata.frames):
-            frames: Optional[list[FrameType]] = encoder.step(1)
+        for _ in trange(0, metadata.frames, args.step_size):
+            frames: Optional[list[FrameType]] = encoder.step(args.step_size)
 
             if frames is None:
                 continue
