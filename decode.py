@@ -131,6 +131,15 @@ class Decoder:
 
         return decoded_frame
 
+    def flush_decode_buffer(self) -> [np.ndarray]:
+        decode_buffer: deque = self._decode_buffer
+
+        frames_out: list[np.ndarray] = list(decode_buffer)
+
+        decode_buffer.clear()
+
+        return frames_out
+
     def reference_frames(self, x: int) -> np.ndarray:
         assert x >= 0
 
