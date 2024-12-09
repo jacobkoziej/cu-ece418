@@ -144,9 +144,6 @@ class Magnitude(Quantizer):
 
         block_axes: Final[tuple[int, int]] = self._block_axes
 
-        x = idctn(x, axes=block_axes, norm="ortho", type=2)
-        x = np.clip(x + dc, 0, 255)
-
-        x = x.astype(np.uint8)
+        x = idctn(x, axes=block_axes, norm="ortho", type=2) + dc
 
         return x

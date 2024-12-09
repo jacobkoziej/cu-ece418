@@ -167,7 +167,7 @@ class Encoder:
         )
         residuals: np.ndarray = np.zeros(
             shape=(blocked_height, blocked_width) + (block_size,) * 2,
-            dtype=target.dtype,
+            dtype=np.int8,
         )
 
         def range_process(limit: int) -> range:

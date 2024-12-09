@@ -77,8 +77,6 @@ class Decoder:
         assert not height % block_size
         assert not width % block_size
 
-        assert reference_frames.dtype == residuals.dtype
-
         decoded_frame: np.ndarray = np.zeros(
             shape=reference_frames.shape[-2:],
             dtype=reference_frames.dtype,
@@ -127,7 +125,11 @@ class Decoder:
                     slice(x, x + block_size),
                 )
 
-                decoded_frame[write_block] = reference_frame + residual
+                decoded_block: np.ndarray
+                decoded_block = reference_frame + residual
+                decoded_block = np.clip(decoded_block, 0, 255).astype(np.uint8)
+
+                decoded_frame[write_block] = decoded_block
 
         return decoded_frame
 
