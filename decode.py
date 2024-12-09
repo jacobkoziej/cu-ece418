@@ -8,7 +8,10 @@ import numpy as np
 from collections import deque
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Final
+from typing import (
+    Final,
+    Optional,
+)
 
 from fetch import VideoMetadata
 from frame import (
@@ -139,7 +142,7 @@ class Decoder:
 
         return reference_frames
 
-    def step(self, frame: FrameType) -> None:
+    def step(self, frame: FrameType) -> Optional[np.ndarray]:
         decoded_frame: np.ndarray
         reference_frames: np.ndarray
 
@@ -165,8 +168,10 @@ class Decoder:
             case _:
                 return None
 
+        frame_out: Optional[np.ndarray] = None
+
         if len(decode_buffer) >= decode_buffer.maxlen:
-            _ = decode_buffer.popleft()
+            frame_out = decode_buffer.popleft()
 
         insert_index: int = len(decode_buffer) - 1
 
@@ -178,7 +183,9 @@ class Decoder:
 
             insert_index += 1
 
-        decode_buffer.insert(insert_index, decoded_frame)
+        decode_buffer.insert(insert_index, self._unpad_frame(decoded_frame))
+
+        return frame_out
 
     @staticmethod
     def unpad_frame(

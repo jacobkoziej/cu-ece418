@@ -116,7 +116,7 @@ class Encoder:
 
             return []
 
-        decoder.step(frame)
+        _ = decoder.step(frame)
 
         frames: list[np.ndarray] = [frame]
 
