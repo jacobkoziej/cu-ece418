@@ -29,6 +29,7 @@
             msgpack
             msgpack-numpy
             numpy
+            pillow
             scipy
             tqdm
           ]
