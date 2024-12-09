@@ -30,6 +30,7 @@
             msgpack-numpy
             numpy
             pillow
+            scikit-image
             scipy
             tqdm
           ]
