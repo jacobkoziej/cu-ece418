@@ -12,12 +12,18 @@ from argparse import (
 )
 from pathlib import Path
 from typing import (
+    Callable,
     Iterator,
     Optional,
 )
 
+from PIL import Image
 from tqdm import trange
 
+from decode import (
+    Decoder,
+    DecoderConfig,
+)
 from encode import (
     Encoder,
     EncoderConfig,
@@ -32,7 +38,10 @@ from frame import (
     FrameType,
     StreamConfig,
 )
-from serialize import write
+from serialize import (
+    read,
+    write,
+)
 
 
 def encode(args: Namespace, ffmpeg_args: dict[str, str]):
@@ -72,6 +81,53 @@ def encode(args: Namespace, ffmpeg_args: dict[str, str]):
 
             for frame in frames:
                 write(f, frame)
+
+
+def decode(args: Namespace, ffmpeg_args: dict[str, str]):
+    args.output.mkdir(parents=True, exist_ok=True)
+
+    with open(args.input, "rb") as f:
+        metadata: VideoMetadata = read(f)
+        assert isinstance(metadata, VideoMetadata)
+
+        stream_config: StreamConfig = read(f)
+        assert isinstance(stream_config, StreamConfig)
+
+        decoder_config: DecoderConfig = DecoderConfig(
+            stream=stream_config,
+            metadata=metadata,
+        )
+
+        decoder: Decoder = Decoder(decoder_config)
+
+        digits: int = len(str(metadata.frames))
+
+        def save_frame(frame_index: int, frame: np.ndarray):
+            file_name = f"{args.output}/{str(frame_index).zfill(digits)}.png"
+
+            frame_out: Image = Image.fromarray(frame)
+
+            frame_out.save(file_name)
+
+        frame: Optional[np.ndarray] = None
+        frame_index: int = -1
+
+        for _ in trange(metadata.frames):
+            decoded_frame: FrameType = read(f)
+
+            frame = decoder.step(decoded_frame)
+
+            if frame is None:
+                continue
+
+            frame_index += 1
+            save_frame(frame_index, frame)
+
+        frames: list[np.ndarray] = decoder.flush_decode_buffer()
+
+        for frame in frames:
+            frame_index += 1
+            save_frame(frame_index, frame)
 
 
 def main():
@@ -147,8 +203,11 @@ def main():
 
     ffmpeg_args: dict[str, str] = dict(arg.split("=") for arg in ffmpeg_args)
 
-    if not args.input.suffix == ".cu-ece418":
-        encode(args, ffmpeg_args)
+    operation: Callable[Namespace, dict[str, str]] = (
+        decode if args.input.suffix == ".cu-ece418" else encode
+    )
+
+    operation(args, ffmpeg_args)
 
 
 if __name__ == "__main__":
