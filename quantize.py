@@ -23,7 +23,7 @@ from scipy.fft import (
 class QuantizedValues:
     dc: np.ndarray
     ac: np.ndarray
-    indicies: np.ndarray
+    indices: np.ndarray
 
 
 class Quantizer(ABC):
@@ -88,35 +88,35 @@ class Magnitude(Quantizer):
 
         quality: Final[int] = self._quality
 
-        indicies: np.ndarray = np.abs(ac).argsort()[..., -quality:]
+        indices: np.ndarray = np.abs(ac).argsort()[..., -quality:]
 
-        ac = np.stack([a[..., i] for (i, a) in zip(indicies, ac)])
+        ac = np.stack([a[..., i] for (i, a) in zip(indices, ac)])
 
         dc = dc.astype(np.float16)
         ac = ac.astype(np.float16)
-        indicies = indicies.astype(np.uint8)
+        indices = indices.astype(np.uint8)
 
         dc = dc.reshape(*base_shape, -1)
         ac = ac.reshape(*base_shape, -1)
-        indicies = indicies.reshape(*base_shape, -1)
+        indices = indices.reshape(*base_shape, -1)
 
         return QuantizedValues(
             dc=dc,
             ac=ac,
-            indicies=indicies,
+            indices=indices,
         )
 
     def dequantize(self, quantized_values: QuantizedValues) -> np.ndarray:
         dc: np.ndarray = quantized_values.dc
         ac: np.ndarray = quantized_values.ac
-        indicies: np.ndarray = quantized_values.indicies
+        indices: np.ndarray = quantized_values.indices
 
         assert dc.ndim >= 2
         assert ac.ndim >= 2
-        assert indicies.ndim >= 2
+        assert indices.ndim >= 2
 
         assert dc.shape[:-1] == ac.shape[:-1]
-        assert dc.shape[:-1] == indicies.shape[:-1]
+        assert dc.shape[:-1] == indices.shape[:-1]
 
         input_shape: Final[tuple[int, ...]] = dc.shape[:-1]
         flat_shape: Final[int] = self._flat_shape
@@ -126,9 +126,9 @@ class Magnitude(Quantizer):
         x = rearrange(x, "... f -> (...) f")
 
         ac = rearrange(ac, "... f -> (...) f")
-        indicies = rearrange(indicies, "... f -> (...) f")
+        indices = rearrange(indices, "... f -> (...) f")
 
-        for i, ac_i, x_i in zip(indicies, ac, x):
+        for i, ac_i, x_i in zip(indices, ac, x):
             x_i[..., i] = ac_i
 
         block_shape: Final[tuple[int, int]] = self._block_shape
